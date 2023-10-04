@@ -163,6 +163,7 @@ def main():
     # Sidebar menu
     menu = ["Page 1: ChatGPT & Links", "Page 2: Settings"]
     choice = st.sidebar.radio("Auto Blogger", menu)
+    print(st.session_state["selected_website"])
     if choice == "Page 1: ChatGPT & Links":
         page_one()
 
