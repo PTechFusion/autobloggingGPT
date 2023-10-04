@@ -5,9 +5,9 @@ import openai
 import csv
 import requests
 from bs4 import BeautifulSoup
-from dotenv import dotenv_values
+# from dotenv import dotenv_values
 
-config = dotenv_values(".env")
+# config = dotenv_values(".env")
 
 def read_csv_to_list_of_lists(uploaded_file):
     # Check if the file is not None
@@ -37,10 +37,10 @@ def get_video_id_from_url(video_url):
 
 def page_one():
     st.subheader("Page 1: ChatGPT & Links")
-    st.session_state["selected_website"]=config.get("WP_URL")
-    st.session_state['openai_api_key']=config.get("OPEN_AI_API")
-    st.session_state['wp_login']=config.get("WP_USER")
-    st.session_state['wp_password']=config.get("WP_APP_PWD")
+    # st.session_state["selected_website"]=config.get("WP_URL")
+    # st.session_state['openai_api_key']=config.get("OPEN_AI_API")
+    # st.session_state['wp_login']=config.get("WP_USER")
+    # st.session_state['wp_password']=config.get("WP_APP_PWD")
     # ChatGPT Prompt
     chatgpt_prompt = st.text_input(label="ChatGPT Prompt:", placeholder='I want you to generate a blog based on the content in HTML format')
     
