@@ -154,6 +154,7 @@ def page_two():
         if wp_pass != '' or wp_pass != None:
             st.session_state['wp_password'] = wp_pass
         # Your processing logic here for page 2
+        print(st.session_state["selected_website"])
         st.write("Settings saved!")
 
 def main():
@@ -163,7 +164,7 @@ def main():
     # Sidebar menu
     menu = ["Page 1: ChatGPT & Links", "Page 2: Settings"]
     choice = st.sidebar.radio("Auto Blogger", menu)
-    print(st.session_state["selected_website"])
+    
     if choice == "Page 1: ChatGPT & Links":
         page_one()
 
