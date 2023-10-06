@@ -36,11 +36,12 @@ def get_video_id_from_url(video_url):
 
 
 def page_one():
-    st.subheader("Page 1: ChatGPT & Links")
+    # st.subheader("Page 1: ChatGPT & Links")
     # st.session_state["selected_website"]=config.get("WP_URL")
     # st.session_state['openai_api_key']=config.get("OPEN_AI_API")
     # st.session_state['wp_login']=config.get("WP_USER")
     # st.session_state['wp_password']=config.get("WP_APP_PWD")
+    # st.session_state['add_video'] = True
     # ChatGPT Prompt
     chatgpt_prompt = st.text_input(label="ChatGPT Prompt:", placeholder='I want you to generate a blog based on the content in HTML format')
     
@@ -90,16 +91,21 @@ def page_one():
             html_string = response.choices[0].message.content
             with open('output.html', 'w', encoding='utf-8') as f:
                 f.write(html_string)
-            # print(html_string)
-            # Parse the HTML string using BeautifulSoup
+
             soup = BeautifulSoup(html_string, 'html.parser')
             # Find the <title> tag and extract its text
             title_tag = soup.find('title')
+            title_tag = title_tag.extract()
+            soup.find('h1').decompose()
             title = title_tag.text
             # Create a JSON payload for the new post
+            if st.session_state['add_video']:
+                content = str(soup.find('body')) + f'<a href="{value_in_first_column}">Video URL</a>'
+            else:
+                content = str(soup.find('body'))
             post_data = {
                 'title': title,
-                'content': html_string,
+                'content': content,
                 'status': 'publish',  # You can set it to 'draft' if you want to save it as a draft.
             }
             username = st.session_state['wp_login']
@@ -134,21 +140,19 @@ def page_two():
 
     # Checkbox for adding video
     add_vide = st.checkbox(label="Add the video at the end of the article?")
-
+    
     # WordPress Credentials
     wp_log = st.text_input(label="WP Login:")
     wp_pass = st.text_input(label="WP Application Password:", type="password")
 
     if st.button(label="Save Settings"):
-        
+        st.session_state['add_video'] = add_vide
         if opeai_api_key != '' or opeai_api_key != None:
             st.session_state['openai_api_key'] = opeai_api_key
         if yout_api_key != '' or yout_api_key != None:
             st.session_state['yt_api_key'] = yout_api_key
         if selectd_website != '' or selectd_website != None:
             st.session_state['selected_website'] = selectd_website
-        if add_vide != None:
-            st.session_state['add_video'] = add_vide
         if wp_log != '' or wp_log != None:
             st.session_state['wp_login'] = wp_log
         if wp_pass != '' or wp_pass != None:
