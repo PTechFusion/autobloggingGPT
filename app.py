@@ -136,7 +136,7 @@ def page_one():
                         title = "Blog Post"
                     # Create a JSON payload for the new post
                     if st.session_state['add_video']:
-                        content = str(soup.find('body')) + f'<a href="{value_in_first_column}">Video URL</a>'
+                        content = str(soup.find('body')) + f'\n{value_in_first_column}'
                     else:
                         content = str(soup.find('body'))
                     post_data = {
