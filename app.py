@@ -76,9 +76,14 @@ def page_one():
             print('----',value_in_first_column)
             url = value_in_first_column
             video_id = get_video_id_from_url(url)
-            caption_data = YouTubeTranscriptApi.get_transcript(video_id=video_id)
+            try:
+                caption_data = YouTubeTranscriptApi.get_transcript(video_id=video_id,languages=('en','es','fr',))
+            except:
+                i += step_size
+                progress_bar.progress(i)
+                continue
             merged_text = ' '.join(item['text'] for item in caption_data)
-            prompt = chatgpt_prompt + "\nAlso, Output format has to be in plain HTML." + merged_text+ "\nAlso, Output format has to be in plain HTML."
+            prompt = chatgpt_prompt  + merged_text+ "\nAlso, Output format has to be in plain HTML. Also output language should be in same language as the context unless specified this prompt."
             
             response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo-16k",
