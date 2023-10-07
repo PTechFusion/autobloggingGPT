@@ -93,63 +93,74 @@ def page_one():
             step_size = int(100/len(list(st.session_state['csv_reader'])))
             i = 0
             for row in st.session_state['csv_reader']:
-                
-                # Access the value in the 0th column (first column)
-                value_in_first_column = row[0]
-                print('----',value_in_first_column)
-                url = value_in_first_column
-                video_id = get_video_id_from_url(url)
                 try:
-                    caption_data = YouTubeTranscriptApi.get_transcript(video_id=video_id,languages=('en','es','fr',))
-                except:
-                    i += step_size
-                    progress_bar.progress(i)
-                    continue
-                merged_text = ' '.join(item['text'] for item in caption_data)
-                prompt = chatgpt_prompt  + merged_text+ "\nAlso, Output format has to be in plain HTML. Also output language should be in same language as the context unless specified this prompt."
-                
-                response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-16k",
-                messages=[
-                    {'role': 'user', 'content': prompt}
-                ],
-                temperature=0,
-                max_tokens=4000,
-                )
-                html_string = response.choices[0].message.content
-                with open('output.html', 'w', encoding='utf-8') as f:
-                    f.write(html_string)
+                    # Access the value in the 0th column (first column)
+                    value_in_first_column = row[0]
+                    print('----',value_in_first_column)
+                    url = value_in_first_column
+                    video_id = get_video_id_from_url(url)
+                    try:
+                        caption_data = YouTubeTranscriptApi.get_transcript(video_id=video_id,languages=('en','es','fr',))
+                    except:
+                        i += step_size
+                        progress_bar.progress(i)
+                        continue
+                    merged_text = ' '.join(item['text'] for item in caption_data)
+                    prompt = chatgpt_prompt  + merged_text+ "\nAlso, Output format has to be in plain HTML. Also output language should be in same language as the context unless specified this prompt."
+                    
+                    response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo-16k",
+                    messages=[
+                        {'role': 'user', 'content': prompt}
+                    ],
+                    temperature=0,
+                    max_tokens=4000,
+                    )
+                    html_string = response.choices[0].message.content
+                    with open('output.html', 'w', encoding='utf-8') as f:
+                        f.write(html_string)
 
-                soup = BeautifulSoup(html_string, 'html.parser')
-                # Find the <title> tag and extract its text
-                title_tag = soup.find('title')
-                title_tag = title_tag.extract()
-                soup.find('h1').decompose()
-                title = title_tag.text
-                # Create a JSON payload for the new post
-                if st.session_state['add_video']:
-                    content = str(soup.find('body')) + f'<a href="{value_in_first_column}">Video URL</a>'
-                else:
-                    content = str(soup.find('body'))
-                post_data = {
-                    'title': title,
-                    'content': content,
-                    'status': 'publish',  # You can set it to 'draft' if you want to save it as a draft.
-                }
-                username = st.session_state['wp_login']
-                password = st.session_state['wp_password']
-                # Make a POST request to create the new post
-                response = requests.post(
-                    wordpress_url,
-                    json=post_data,
-                    auth=(username, password)
-                )
-                # Check the response
-                if response.status_code == 201:
-                    print('Blog post created successfully!')
-                else:
-                    print('Failed to create blog post. Status code:', response.status_code)
-                    print('Response content:', response.text)
+                    soup = BeautifulSoup(html_string, 'html.parser')
+                    # Find the <title> tag and extract its text
+                    title_tag = soup.find('title')
+                    if title_tag:
+                        title_tag = soup.extract()
+                        soup.find('h1').decompose()
+                    else:
+                        title_tag = soup.find('h1')
+                        if title_tag:
+                            title_tag = title_tag.extract()
+                    if title_tag:
+                        title = title_tag.text
+                    else:
+                        title = "Blog Post"
+                    # Create a JSON payload for the new post
+                    if st.session_state['add_video']:
+                        content = str(soup.find('body')) + f'<a href="{value_in_first_column}">Video URL</a>'
+                    else:
+                        content = str(soup.find('body'))
+                    post_data = {
+                        'title': title,
+                        'content': content,
+                        'status': 'publish',  # You can set it to 'draft' if you want to save it as a draft.
+                    }
+                    username = st.session_state['wp_login']
+                    password = st.session_state['wp_password']
+                    # Make a POST request to create the new post
+                    response = requests.post(
+                        wordpress_url,
+                        json=post_data,
+                        auth=(username, password)
+                    )
+                    # Check the response
+                    if response.status_code == 201:
+                        print('Blog post created successfully!')
+                    else:
+                        print('Failed to create blog post. Status code:', response.status_code)
+                        print('Response content:', response.text)
+                except Exception as e:
+                    print(f'Had an error in getting the HTML\n{e}')
+                    
                 i += step_size
                 progress_bar.progress(i)
                 
