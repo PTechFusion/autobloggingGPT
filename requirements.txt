@@ -3,3 +3,4 @@ youtube-transcript-api
 openai
 bs4
 python-dotenv
+streamlit-authenticator-0.2.3
