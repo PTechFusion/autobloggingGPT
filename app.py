@@ -106,7 +106,7 @@ def page_one():
                         progress_bar.progress(i)
                         continue
                     merged_text = ' '.join(item['text'] for item in caption_data)
-                    prompt = chatgpt_prompt  + merged_text+ "\nAlso, Output format has to be in plain HTML. Also output language should be in same language as the context unless specified this prompt."
+                    prompt = chatgpt_prompt  + merged_text
                     
                     response = openai.ChatCompletion.create(
                     model="gpt-3.5-turbo-16k",
