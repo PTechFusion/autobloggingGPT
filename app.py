@@ -12,7 +12,7 @@ with open('auth.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 # from dotenv import dotenv_values
 
-# config = dotenv_values(".env")
+# config1 = dotenv_values(".env")
 
 authenticator = Authenticate(
     config['credentials'],
@@ -55,11 +55,11 @@ def check_password(submitted_password):
 #admintest12345
 def page_one():
     name, authentication_status, username = authenticator.login('Login', 'main')
-    # st.subheader("Page 1: ChatGPT & Links")
-    # st.session_state["selected_website"]=config.get("WP_URL")
-    # st.session_state['openai_api_key']=config.get("OPEN_AI_API")
-    # st.session_state['wp_login']=config.get("WP_USER")
-    # st.session_state['wp_password']=config.get("WP_APP_PWD")
+    st.subheader("Page 1: ChatGPT & Links")
+    # st.session_state["selected_website"]=config1.get("WP_URL")
+    # st.session_state['openai_api_key']=config1.get("OPEN_AI_API")
+    # st.session_state['wp_login']=config1.get("WP_USER")
+    # st.session_state['wp_password']=config1.get("WP_APP_PWD")
     # st.session_state['add_video'] = True
     # ChatGPT Prompt
     if st.session_state["authentication_status"]:
@@ -105,35 +105,40 @@ def page_one():
                         i += step_size
                         progress_bar.progress(i)
                         continue
+                   
                     merged_text = ' '.join(item['text'] for item in caption_data)
-                    prompt = chatgpt_prompt  + merged_text
+                    
+                   
+                    prompt = chatgpt_prompt  + merged_text + "\n Please only response with HTML. Only HTML with at least one title tag and some h2 headings"
                     
                     response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
+                    model="gpt-3.5-turbo-16k",
                     messages=[
                         {'role': 'user', 'content': prompt}
                     ],
-                    temperature=0,
-                    max_tokens=3000,
+                    temperature=0.7,
+                    max_tokens=4000,
                     )
                     html_string = response.choices[0].message.content
                     with open('output.html', 'w', encoding='utf-8') as f:
                         f.write(html_string)
-
+                    
                     soup = BeautifulSoup(html_string, 'html.parser')
-                    # Find the <title> tag and extract its text
+                    title = "Blog Post"
                     title_tag = soup.find('title')
                     if title_tag:
-                        title_tag = soup.extract()
+                        title = title_tag.text.strip()
+                        # title_tag = soup.extract('title')
+                        soup.find('title').decompose()
                         soup.find('h1').decompose()
                     else:
                         title_tag = soup.find('h1')
                         if title_tag:
-                            title_tag = title_tag.extract()
-                    if title_tag:
-                        title = title_tag.text
-                    else:
-                        title = "Blog Post"
+                            title = title_tag.text.strip()
+                            # # title_tag = soup.extract('title')
+                            # soup.find('title').decompose()
+                            soup.find('h1').decompose()
+                    print(title)
                     # Create a JSON payload for the new post
                     if st.session_state['add_video']:
                         content = str(soup.find('body')) + f'\n{value_in_first_column}'
