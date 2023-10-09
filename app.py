@@ -100,7 +100,7 @@ def page_one():
                     url = value_in_first_column
                     video_id = get_video_id_from_url(url)
                     try:
-                        caption_data = YouTubeTranscriptApi.get_transcript(video_id=video_id,languages=('en','es','fr',))
+                        caption_data = YouTubeTranscriptApi.get_transcript(video_id=video_id, languages=('en','es','fr',))
                     except:
                         i += step_size
                         progress_bar.progress(i)
@@ -109,12 +109,12 @@ def page_one():
                     prompt = chatgpt_prompt  + merged_text
                     
                     response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo-16k",
+                    model="gpt-3.5-turbo",
                     messages=[
                         {'role': 'user', 'content': prompt}
                     ],
                     temperature=0,
-                    max_tokens=4000,
+                    max_tokens=3000,
                     )
                     html_string = response.choices[0].message.content
                     with open('output.html', 'w', encoding='utf-8') as f:
