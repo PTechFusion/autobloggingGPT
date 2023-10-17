@@ -2,6 +2,7 @@ import streamlit as st
 from youtube_transcript_api import YouTubeTranscriptApi
 import urllib.parse
 import openai
+from openai.error import ServiceUnavailableError, Timeout
 import csv
 import requests
 from bs4 import BeautifulSoup
@@ -10,9 +11,10 @@ from yaml.loader import SafeLoader
 from streamlit_authenticator import Authenticate
 with open('auth.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
-# from dotenv import dotenv_values
-
-# config1 = dotenv_values(".env")
+from dotenv import dotenv_values
+from icecream import ic
+import time
+config1 = dotenv_values(".env")
 
 authenticator = Authenticate(
     config['credentials'],
@@ -56,26 +58,28 @@ def check_password(submitted_password):
 def page_one():
     name, authentication_status, username = authenticator.login('Login', 'main')
     st.subheader("Page 1: ChatGPT & Links")
-    # st.session_state["selected_website"]=config1.get("WP_URL")
-    # st.session_state['openai_api_key']=config1.get("OPEN_AI_API")
-    # st.session_state['wp_login']=config1.get("WP_USER")
-    # st.session_state['wp_password']=config1.get("WP_APP_PWD")
-    # st.session_state['add_video'] = True
+    st.session_state["selected_website"]=config1.get("WP_URL")
+    st.session_state['openai_api_key']=config1.get("OPEN_AI_API")
+    st.session_state['wp_login']=config1.get("WP_USER")
+    st.session_state['wp_password']=config1.get("WP_APP_PWD")
+    st.session_state['add_video'] = True
     # ChatGPT Prompt
     if st.session_state["authentication_status"]:
         authenticator.logout('Logout', 'main')
         st.write(f'Welcome *{st.session_state["name"]}*')
         st.title('Some content')
         chatgpt_prompt = st.text_input(label="ChatGPT Prompt:", placeholder='I want you to generate a blog based on the content in HTML format')
-        
+        urls = None
+        urls_count = 0
         # YouTube Links CSV
         uploaded_file = st.file_uploader(label="Upload YouTube links CSV:", type=["csv"])
 
         # Replace with the actual path to your CSV file
         csv_file_path = uploaded_file
         if uploaded_file is not None:
-            # Read the CSV file and store it in the state variable
-                st.session_state['csv_reader'] = list(csv.reader((line.decode('utf-8') for line in csv_file_path), delimiter=','))
+            urls = [x for x in list(csv.reader((line.decode('utf-8') for line in csv_file_path), delimiter=',')) if x]
+            urls_count = len(urls)
+            st.session_state['csv_reader'] = urls
                 
         if st.button(label="Submit"):
             # Set your API key
@@ -90,35 +94,54 @@ def page_one():
             # next(st.session_state['csv_reader'], None)
             # Iterate through the rows in the CSV file
             progress_bar = st.progress(0, text="Processing... Please wait")
-            step_size = int(100/len(list(st.session_state['csv_reader'])))
+            if urls_count<=100:
+                step_size = int(100/urls_count)
+            else:
+                step_size = (100/urls_count)
+            ic(step_size)
             i = 0
             for row in st.session_state['csv_reader']:
                 try:
-                    # Access the value in the 0th column (first column)
+                # Access the value in the 0th column (first column)
+                
                     value_in_first_column = row[0]
-                    print('----',value_in_first_column)
+                    if not value_in_first_column:
+                        continue
+                    print(i)
+                    ic('----',value_in_first_column)
                     url = value_in_first_column
                     video_id = get_video_id_from_url(url)
                     try:
                         caption_data = YouTubeTranscriptApi.get_transcript(video_id=video_id, languages=('en','es','fr',))
-                    except:
+                    except Exception as e:
+                        ic(e)
                         i += step_size
-                        progress_bar.progress(i)
+                        
+                        ic(i)
+                        progress_bar.progress(int(i))
                         continue
-                   
+                    
                     merged_text = ' '.join(item['text'] for item in caption_data)
                     
-                   
-                    prompt = chatgpt_prompt  + merged_text + "\n Please only response with HTML. Only HTML with at least one title tag and some h2 headings"
                     
-                    response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo-16k",
-                    messages=[
-                        {'role': 'user', 'content': prompt}
-                    ],
-                    temperature=0.7,
-                    max_tokens=4000,
-                    )
+                    prompt = chatgpt_prompt  + merged_text + "\n Please only response with HTML. Only HTML with at least one title tag and some h2 headings"
+                    while True:
+                        try:
+                            response = openai.ChatCompletion.create(
+                            model="gpt-3.5-turbo-16k",
+                            messages=[
+                                {'role': 'user', 'content': prompt}
+                            ],
+                            temperature=0.7,
+                            max_tokens=4000,
+                            )
+                            break
+                        except ServiceUnavailableError:
+                            print('Open AI Server is unavailable, retrying...')
+                            time.sleep(5)
+                        except Timeout:
+                            print('Open AI Server Timeout, retrying...')
+                            time.sleep(5)
                     html_string = response.choices[0].message.content
                     with open('output.html', 'w', encoding='utf-8') as f:
                         f.write(html_string)
@@ -130,14 +153,18 @@ def page_one():
                         title = title_tag.text.strip()
                         # title_tag = soup.extract('title')
                         soup.find('title').decompose()
-                        soup.find('h1').decompose()
+                        h1 = soup.find('h1')
+                        if h1:
+                            h1.decompose()
                     else:
                         title_tag = soup.find('h1')
                         if title_tag:
                             title = title_tag.text.strip()
                             # # title_tag = soup.extract('title')
                             # soup.find('title').decompose()
-                            soup.find('h1').decompose()
+                            h1 = soup.find('h1')
+                            if h1:
+                                h1.decompose()
                     print(title)
                     # Create a JSON payload for the new post
                     if st.session_state['add_video']:
@@ -167,7 +194,8 @@ def page_one():
                     print(f'Had an error in getting the HTML\n{e}')
                     
                 i += step_size
-                progress_bar.progress(i)
+                progress_bar.progress(int(i))
+                # progress_bar.text(f"{i}/{len(list(st.session_state['csv_reader']))}")
                 
             # Your processing logic here for page 1
             st.write("Data from Page 1 saved!")
