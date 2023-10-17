@@ -14,7 +14,7 @@ with open('auth.yaml') as file:
 from dotenv import dotenv_values
 from icecream import ic
 import time
-config1 = dotenv_values(".env")
+# config1 = dotenv_values(".env")
 
 authenticator = Authenticate(
     config['credentials'],
@@ -58,11 +58,11 @@ def check_password(submitted_password):
 def page_one():
     name, authentication_status, username = authenticator.login('Login', 'main')
     st.subheader("Page 1: ChatGPT & Links")
-    st.session_state["selected_website"]=config1.get("WP_URL")
-    st.session_state['openai_api_key']=config1.get("OPEN_AI_API")
-    st.session_state['wp_login']=config1.get("WP_USER")
-    st.session_state['wp_password']=config1.get("WP_APP_PWD")
-    st.session_state['add_video'] = True
+    # st.session_state["selected_website"]=config1.get("WP_URL")
+    # st.session_state['openai_api_key']=config1.get("OPEN_AI_API")
+    # st.session_state['wp_login']=config1.get("WP_USER")
+    # st.session_state['wp_password']=config1.get("WP_APP_PWD")
+    # st.session_state['add_video'] = True
     # ChatGPT Prompt
     if st.session_state["authentication_status"]:
         authenticator.logout('Logout', 'main')
