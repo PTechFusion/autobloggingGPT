@@ -4,4 +4,3 @@ openai
 bs4
 python-dotenv
 streamlit-authenticator
-icecream
