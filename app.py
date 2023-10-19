@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import yaml
 from yaml.loader import SafeLoader
 from streamlit_authenticator import Authenticate
+from stqdm import stqdm
 with open('auth.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 # from dotenv import dotenv_values
@@ -94,13 +95,14 @@ def page_one():
             # next(st.session_state['csv_reader'], None)
             # Iterate through the rows in the CSV file
             progress_bar = st.progress(0, text="Processing... Please wait")
+
             if urls_count<=100:
                 step_size = int(100/urls_count)
             else:
                 step_size = (100/urls_count)
             
             i = 0
-            for row in st.session_state['csv_reader']:
+            for row in stqdm(st.session_state['csv_reader']):
                 try:
                 # Access the value in the 0th column (first column)
                 
