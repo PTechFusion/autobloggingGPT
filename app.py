@@ -247,13 +247,13 @@ def main():
     st.title("Video to Wordpress Posts")
     
     # Sidebar menu
-    menu = ["Page 1: ChatGPT & Links", "Page 2: Settings"]
+    menu = ["ChatGPT & Links", "Settings"]
     choice = st.sidebar.radio("Auto Blogger", menu)
     
-    if choice == "Page 1: ChatGPT & Links":
+    if choice == "ChatGPT & Links":
         page_one()
 
-    elif choice == "Page 2: Settings":
+    elif choice == "Settings":
         page_two()
 
 if __name__ == "__main__":
