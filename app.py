@@ -11,7 +11,7 @@ from yaml.loader import SafeLoader
 from streamlit_authenticator import Authenticate
 with open('auth.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
-from dotenv import dotenv_values
+# from dotenv import dotenv_values
 from icecream import ic
 import time
 # config1 = dotenv_values(".env")
@@ -57,7 +57,7 @@ def check_password(submitted_password):
 #admintest12345
 def page_one():
     name, authentication_status, username = authenticator.login('Login', 'main')
-    st.subheader("Page 1: ChatGPT & Links")
+    st.subheader("ChatGPT & Links")
     # st.session_state["selected_website"]=config1.get("WP_URL")
     # st.session_state['openai_api_key']=config1.get("OPEN_AI_API")
     # st.session_state['wp_login']=config1.get("WP_USER")
@@ -204,7 +204,7 @@ def page_one():
     elif st.session_state["authentication_status"] == None:
         st.warning('Please enter your username and password')
 def page_two():
-    st.subheader("Page 2: Settings")
+    st.subheader("Settings")
     
     name, authentication_status, username = authenticator.login('Login', 'main')
     if st.session_state["authentication_status"]:
