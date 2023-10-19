@@ -12,7 +12,7 @@ from streamlit_authenticator import Authenticate
 with open('auth.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 # from dotenv import dotenv_values
-from icecream import ic
+
 import time
 # config1 = dotenv_values(".env")
 
@@ -98,7 +98,7 @@ def page_one():
                 step_size = int(100/urls_count)
             else:
                 step_size = (100/urls_count)
-            ic(step_size)
+            
             i = 0
             for row in st.session_state['csv_reader']:
                 try:
@@ -108,16 +108,16 @@ def page_one():
                     if not value_in_first_column:
                         continue
                     print(i)
-                    ic('----',value_in_first_column)
+                    # ic('----',value_in_first_column)
                     url = value_in_first_column
                     video_id = get_video_id_from_url(url)
                     try:
                         caption_data = YouTubeTranscriptApi.get_transcript(video_id=video_id, languages=('en','es','fr',))
                     except Exception as e:
-                        ic(e)
+                        
                         i += step_size
                         
-                        ic(i)
+                        
                         progress_bar.progress(int(i))
                         continue
                     
