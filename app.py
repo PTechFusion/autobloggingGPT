@@ -68,7 +68,7 @@ def page_one():
     if st.session_state["authentication_status"]:
         authenticator.logout('Logout', 'main')
         st.write(f'Welcome *{st.session_state["name"]}*')
-        st.title('Some content')
+        
         chatgpt_prompt = st.text_input(label="ChatGPT Prompt:", placeholder='I want you to generate a blog based on the content in HTML format')
         urls = None
         urls_count = 0
